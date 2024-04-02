@@ -37,7 +37,7 @@ app = Flask(__name__)
 
 # Load your trained model
 
-model = tf.keras.models.load_model('CMRmn.h5')
+model = tf.keras.models.load_model('CMRmn2.h5')
 
 
 
