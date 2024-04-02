@@ -20,10 +20,13 @@ from tensorflow.keras.applications.imagenet_utils import preprocess_input, decod
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 
+
 # Flask utils
-from flask import Flask, redirect, url_for, request, render_template
-from werkzeug.utils import secure_filename
+from flask import Flask, redirect, url_for, request, render_template, jsonify
+
 #from gevent.pywsgi import WSGIServer
+
+
 
 
 import tensorflow as tf
@@ -69,30 +72,24 @@ def model_predict(img_path, model):
     return preds
 
 
-@app.route('/', methods=['GET'])
-def index():
-    # Main page
-    return render_template('index.html')
 
 
-@app.route('/predict', methods=['GET', 'POST'])
-def upload():
+@app.route('/predict', methods=['POST'])
+def predict():
     if request.method == 'POST':
         # Get the file from post request
         f = request.files['file']
 
-        # Save the file to ./uploads
-        basepath = os.path.dirname(__file__)
-        file_path = os.path.join(
-            basepath, 'uploads', secure_filename(f.filename))
-        f.save(file_path)
+
 
         # Make prediction
-        preds = model_predict(file_path, model)
+        preds = model_predict(f, model)
         #preds='Brain'
         result=preds
-        return result
+        return jsonify({ 
+            'prediction':result})
     return None
+
 
 
 if __name__ == '__main__':
