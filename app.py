@@ -26,10 +26,8 @@ from werkzeug.utils import secure_filename
 #from gevent.pywsgi import WSGIServer
 
 
-from PIL import Image
-
 import tensorflow as tf
-import pickle
+
 
 # Define a flask app
 app = Flask(__name__)
