@@ -12,7 +12,7 @@ Created on Mon Apr  1 02:04:55 2024
 
 import os
 
-
+from io import BytesIO
 import numpy as np
 import requests
 # Keras
