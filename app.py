@@ -14,7 +14,7 @@ import os
 
 
 import numpy as np
-
+import requests
 # Keras
 from tensorflow.keras.applications.imagenet_utils import preprocess_input, decode_predictions
 from tensorflow.keras.models import load_model
@@ -30,7 +30,7 @@ from flask import Flask, redirect, url_for, request, render_template, jsonify
 
 
 import tensorflow as tf
-
+from PIL import Image
 
 # Define a flask app
 app = Flask(__name__)
@@ -42,12 +42,9 @@ model = tf.keras.models.load_model('CMRmn2.h5')
 
 
 
-def model_predict(img_path, model):
-    img = image.load_img(img_path, target_size=(224, 224))
-
-    # Preprocessing the image
-    x = image.img_to_array(img)
-    # x = np.true_divide(x, 255)
+def model_predict(img, model):
+    
+    # x = np.true_divide(img, 255)
     ## Scaling
     
     x = np.expand_dims(x, axis=0)
@@ -77,18 +74,29 @@ def model_predict(img_path, model):
 @app.route('/predict', methods=['POST'])
 def predict():
     if request.method == 'POST':
-        # Get the file from post request
-        f = request.files['file']
-
-
-
-        # Make prediction
-        preds = model_predict(f, model)
-        #preds='Brain'
-        result=preds
-        return jsonify({ 
-            'prediction':result})
-    return None
+        try:
+            # Get the JSON data from the request
+            data = request.get_json()
+            # Extract the URL from the JSON data
+            image_url = data.get('url')
+            if image_url:
+                # Fetch the image from the URL
+                response = requests.get(image_url)
+                if response.status_code == 200:
+                    img = Image.open(BytesIO(response.content))
+                    img = img.resize((224, 224))                
+                    preds = model_predict(img, model)
+                    result=preds
+                    return jsonify({'prediction':result})
+                    
+                else:
+                    return jsonify({'error': 'Failed to fetch image from the URL'})
+            else:
+                return jsonify({'error': 'No image URL provided'})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    else:
+        return jsonify({'error': 'Invalid request method'})
 
 
 
