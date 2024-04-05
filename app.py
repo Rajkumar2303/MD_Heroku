@@ -3,8 +3,6 @@ import requests
 from flask import Flask, request, jsonify
 from PIL import Image
 from io import BytesIO
-import joblib
-from keras.applications.vgg16 import VGG16
 from keras.preprocessing import image as keras_image
 import tensorflow as tf
 app = Flask(__name__)
@@ -23,9 +21,11 @@ def predict():
     if request.method == 'POST':
         try:
             # Get the JSON data from the request
+            
             data = request.get_json()
             # Extract the URL from the JSON data
             image_url = data.get('url')
+            
             if image_url:
                 # Fetch the image from the URL
                 response = requests.get(image_url)
@@ -33,7 +33,7 @@ def predict():
                     # Read the image from the response content
                     img = Image.open(BytesIO(response.content))
                     # Preprocess the image
-                    img = img.resize((256, 256))
+                    img = img.resize((224, 224))
                     img_array = keras_image.img_to_array(img)
                     img_array = np.expand_dims(img_array, axis=0)
                     img_array = img_array / 255.0  # Normalize the image
@@ -46,10 +46,7 @@ def predict():
                     predicted_class = label[np.argmax(prediction_list)]
 
                     # Return the prediction result as JSON
-                    return jsonify({
-                        'prediction': prediction_list,
-                        'predicted_class': predicted_class
-                    })
+                    return jsonify({'predicted_Disease': predicted_class})
                 else:
                     return jsonify({'error': 'Failed to fetch image from the URL'})
             else:
