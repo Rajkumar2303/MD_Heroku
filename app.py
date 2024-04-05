@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Apr  2 13:54:32 2024
-
-@author: rajku
-"""
-
-# -*- coding: utf-8 -*-
-"""
 Created on Mon Apr  1 02:04:55 2024
 
 @author: rajku
@@ -19,24 +12,25 @@ Created on Mon Apr  1 02:04:55 2024
 
 import os
 
-
+from io import BytesIO
 import numpy as np
-
+import requests
 # Keras
 from tensorflow.keras.applications.imagenet_utils import preprocess_input, decode_predictions
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 
+
 # Flask utils
 from flask import Flask, redirect, url_for, request, render_template, jsonify
-from werkzeug.utils import secure_filename
+
 #from gevent.pywsgi import WSGIServer
 
 
-from PIL import Image
+
 
 import tensorflow as tf
-import pickle
+from PIL import Image
 
 # Define a flask app
 app = Flask(__name__)
@@ -48,12 +42,9 @@ model = tf.keras.models.load_model('CMRmn2.h5')
 
 
 
-def model_predict(img_path, model):
-    img = image.load_img(img_path, target_size=(224, 224))
-
-    # Preprocessing the image
-    x = image.img_to_array(img)
-    # x = np.true_divide(x, 255)
+def model_predict(img, model):
+    
+    # x = np.true_divide(img, 255)
     ## Scaling
     
     x = np.expand_dims(x, axis=0)
@@ -78,30 +69,35 @@ def model_predict(img_path, model):
     return preds
 
 
-@app.route('/', methods=['GET'])
-def index():
-    # Main page
-    return render_template('index.html')
 
 
-@app.route('/predict', methods=['GET', 'POST'])
-def upload():
+@app.route('/predict', methods=['POST'])
+def predict():
     if request.method == 'POST':
-        # Get the file from post request
-        f = request.files['file']
+        try:
+            # Get the JSON data from the request
+            data = request.get_json()
+            # Extract the URL from the JSON data
+            image_url = data.get('url')
+            if image_url:
+                # Fetch the image from the URL
+                response = requests.get(image_url)
+                if response.status_code == 200:
+                    img = Image.open(BytesIO(response.content))
+                    img = img.resize((224, 224))                
+                    preds = model_predict(img, model)
+                    result=preds
+                    return jsonify({'prediction':result})
+                    
+                else:
+                    return jsonify({'error': 'Failed to fetch image from the URL'})
+            else:
+                return jsonify({'error': 'No image URL provided'})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    else:
+        return jsonify({'error': 'Invalid request method'})
 
-        # Save the file to ./uploads
-        basepath = os.path.dirname(__file__)
-        file_path = os.path.join(
-            basepath, 'uploads', secure_filename(f.filename))
-        f.save(file_path)
-
-        # Make prediction
-        preds = model_predict(file_path, model)
-        #preds='Brain'
-        result=preds
-        return result
-    return None
 
 
 if __name__ == '__main__':
