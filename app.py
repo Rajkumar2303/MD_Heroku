@@ -30,6 +30,7 @@ def predict():
                 # Fetch the image from the URL
                 response = requests.get(image_url)
                 if response.status_code == 200:
+                    print('test1 ')
                     # Read the image from the response content
                     img = Image.open(BytesIO(response.content))
                     # Preprocess the image
@@ -38,6 +39,11 @@ def predict():
                     img_array = np.expand_dims(img_array, axis=0)
                     img_array = img_array / 255.0  # Normalize the image
                     
+                    '''# Extract features using VGG16
+                    features = vggmodel.predict(img_array)
+                    features = features.reshape(features.shape[0], -1)
+                    # Make prediction using the model
+                    prediction = model.predict(features)[0]'''
 
                     prediction = model.predict(img_array)[0]
                     # Convert NumPy array to Python list
