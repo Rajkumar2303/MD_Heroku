@@ -7,11 +7,11 @@ from keras.preprocessing import image as keras_image
 import tensorflow as tf
 import pandas as pd
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from flask_cors import CORS
+#from flask_cors import CORS
 
 
 app = Flask(__name__)
-CORS(app)
+#CORS(app)
 # Load the LightGBM model
 model = tf.keras.models.load_model('CMRmn2.h5')
 
