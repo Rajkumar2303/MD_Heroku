@@ -56,6 +56,7 @@ def predict():
                 
                 y_pred = model.predict(tes_gen)
 
+                
                 ind = int(np.argmax(y_pred, axis=1))
                         
                 # Determine the predicted class
